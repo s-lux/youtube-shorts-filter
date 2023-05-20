@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<link href="popup.css" rel="stylesheet">
+	</head>
+	<body>
+		<div class="header">
+			<img id="main-icon" src="../icons/youtube-shorts-filter.png" class="image">
+			<div id="title">{Title}</div>
+		</div>
+		<fieldset id="whitelist" class="group">
+			<legend id="whitelistLegendLabel" class="title">
+				{Group Text}
+			</legend>
+
+			<label for="whitelistChannelName">
+				<span id="whitelistChannelNameLabel">
+					{Add Channel Label}
+				</span>
+				<br/>
+			</label>
+
+			<table id="channelAdd" class="table">
+				<tbody>
+					<tr>
+						<td>
+							<input type="text" id="whitelistChannelName" class="textbox">
+						</td>
+						<td>
+							<input type="button" id="whitelistChannelAdd" value="{Add}" class="button">
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<table id="channelList" class="table">
+				<tbody>
+				</tbody>
+			</table>
+		</fieldset>
+
+		<div class="info">
+			<table class="version">
+				<tbody>
+					<tr>
+						<td>
+							<div id="versionLabel">
+								{VersionLabel}
+							</div>
+						</td>
+						<td>
+							<div id="versionNumber">
+								{VersionNumber}
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+
+		<script src="popup.js"></script>
+	</body>
+</html>

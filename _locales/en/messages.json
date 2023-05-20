@@ -1,0 +1,23 @@
+{
+	"extensionName": {
+		"message": "YouTube-Shorts Filter"
+	},
+	"extensionDescription": {
+		"message": "Filters out YouTube-Shorts from the home page, subscriptions and search results."
+	},
+	"groupLegendWhitelist": {
+		"message": "Whitelist channels"
+	},
+	"channelNameLabel": {
+		"message": "Enter a channel name"
+	},
+	"addButton": {
+		"message": "Add"
+	},
+	"removeButton": {
+		"message": "Remove"
+	},
+	"version": {
+		"message": "Version"
+	}
+}
