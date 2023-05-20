@@ -1,27 +1,36 @@
 {
-    "manifest_version": 2,
-    "version": "0.1.0",
-    "name": "__MSG_extensionName__",
-    "description": "__MSG_extensionDescription__",
-    "icons": {
+  "manifest_version": 2,
+  "version": "0.1.0",
+  "name": "__MSG_extensionName__",
+  "description": "__MSG_extensionDescription__",
+  "icons": {
+    "256": "icons/youtube-shorts-filter.png"
+  },
+  "permissions": [
+    "storage"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.youtube.com/*"
+      ],
+      "js": [
+        "./src/main.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "default_locale": "en",
+  "browser_action": {
+    "default_icon": {
       "256": "icons/youtube-shorts-filter.png"
     },
-    "permissions" : [
-      "storage" 
-    ],
-    "content_scripts": [
-      {
-        "matches": ["*://*.youtube.com/*"],
-        "js": ["./src/main.js"],
-        "run_at": "document_idle"
-      }
-    ],
-    "default_locale": "en",
-    "browser_action": {
-      "default_icon":{
-          "256":"icons/youtube-shorts-filter.png"
-      },
-      "default_title": "YouTube-Shorts Filter",
-      "default_popup": "./src/popup.html"
+    "default_title": "YouTube-Shorts Filter",
+    "default_popup": "./src/popup.html"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "youtube-shorts-filter@s.lux"
+    }
   }
 }

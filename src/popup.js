@@ -22,7 +22,7 @@ window.onload = function() {
 };
 
 function drawChannels() {
-	browser.storage.local.get(["whitelistedChannels"])
+	browser.storage.sync.get(["whitelistedChannels"])
 		.then(storage => {
 			if (storage.whitelistedChannels !== undefined &&
 				storage.whitelistedChannels !== null
@@ -47,10 +47,10 @@ function drawChannels() {
 					let removeButton = document.createElement("input");
 					removeButton.id = "remove" + channel.id.toString();
 					removeButton.type = "button";
-					removeButton.className = "button" 
+					removeButton.className = "button"
 					removeButton.value = buttonText;
 					cell2.appendChild(removeButton);
-					
+
 					removeButton.addEventListener("click", e => {
 						this.removeChannelEvent(e.target.id);
 					});
@@ -68,7 +68,7 @@ function addChannelEvent() {
 	if (channel == undefined || channel == null || channel == "")
 		return;
 
-	browser.storage.local.get(["whitelistedChannels"])
+	browser.storage.sync.get(["whitelistedChannels"])
 		.then(storage => {
 			if (storage.whitelistedChannels === undefined ||
 				storage.whitelistedChannels === null
@@ -83,7 +83,7 @@ function addChannelEvent() {
 				id: maxId + 1,
 				name: channel
 			});
-			
+
 			storage.whitelistedChannels.sort((a, b) => {
 				const nameA = a.name.toUpperCase();
 				const nameB = b.name.toUpperCase();
@@ -108,14 +108,14 @@ function removeChannelEvent(buttonId) {
 
 	const id = buttonId.substr(6);
 
-	browser.storage.local.get(["whitelistedChannels"])
+	browser.storage.sync.get(["whitelistedChannels"])
 		.then(storage => {
 			if (storage.whitelistedChannels !== undefined &&
 				storage.whitelistedChannels !== null
 			) {
 				const channel = storage.whitelistedChannels.find(item => item.id == id)
 
-				if (channel !== undefined && 
+				if (channel !== undefined &&
 					channel !== null
 				) {
 					const ix = storage.whitelistedChannels.indexOf(channel);
@@ -128,7 +128,7 @@ function removeChannelEvent(buttonId) {
 }
 
 function saveChannels(storage) {
-	browser.storage.local.set(storage)
+	browser.storage.sync.set(storage)
 		.then(() => {
 			this.drawChannels();
 		})

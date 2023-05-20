@@ -53,13 +53,12 @@ ytd-page-manager
 							a href="{channel id}"
 							{channel text}
 */
-
 let debugMode = false;
 let whitelistedChannels = [];
 let observer = null;
 
 this.debugLog('startup()');
-browser.storage.local.get(["whitelistedChannels"])
+browser.storage.sync.get(["whitelistedChannels"])
 	.then(storage => {
 		this.debugLog('startup() -> storage loaded');
 		this.debugLog(storage);
@@ -82,6 +81,13 @@ observer.observe(document.querySelector('#content'), {
 });
 
 function filterShorts() {
+	// Check the path and only run the filter on pages where filtering is currently implemented.
+	let pathMatch = /\/subscriptions\/?$/;
+	if (!pathMatch.test(document.location.pathname)) {
+		return;
+	}
+
+	console.log('filterShorts');
 	this.debugLog('filterShorts()', whitelistedChannels);
 
 	// Find all shorts
@@ -128,12 +134,12 @@ function filterShorts() {
 					short.hidden = false;
 				}
 
-				// Replace URL
-				this.debugLog('replacing url');
-				this.debugLog(short);
-				Array.from(short.getElementsByTagName('a'))
-					.filter(a => /^.*\/shorts\/.+$/i.test(a.href))
-					.forEach(a => a.href = a.href.replace(/\/shorts\//i, '/watch?v='));
+				// // Replace URL
+				// this.debugLog('replacing url');
+				// this.debugLog(short);
+				// Array.from(short.getElementsByTagName('a'))
+				// 	.filter(a => /^.*\/shorts\/.+$/i.test(a.href))
+				// 	.forEach(a => a.href = a.href.replace(/\/shorts\//i, '/watch?v='));
 			}
 			else {
 				this.debugLog('hiding short');
