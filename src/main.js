@@ -56,6 +56,12 @@ ytd-page-manager
 let debugMode = false;
 let whitelistedChannels = [];
 let observer = null;
+let shortsUrlMatch = /((?:.+\.)?youtube\.com)\/shorts\/(.+$)/i;
+
+if (shortsUrlMatch.exec(location.href)) {
+	this.debugLog('redirecting shorts url to video url');
+	location.href = location.href.replace(shortsUrlMatch, '$1/watch?v=$2');
+}
 
 this.debugLog('startup()');
 browser.storage.sync.get(["whitelistedChannels"])
@@ -80,14 +86,21 @@ observer.observe(document.querySelector('#content'), {
 	subtree: true
 });
 
+document.addEventListener("yt-navigate-start", event => {
+	if (shortsUrlMatch.exec(event.target.baseURI)) {
+		this.debugLog('redirecting shorts url to video url');
+		history.back();
+		location.href = event.target.baseURI.replace(shortsUrlMatch, '$1/watch?v=$2');
+	}
+});
+
 function filterShorts() {
 	// Check the path and only run the filter on pages where filtering is currently implemented.
-	let pathMatch = /\/subscriptions\/?$/;
-	if (!pathMatch.test(document.location.pathname)) {
+	let pathMatch = /^\/feed\/subscriptions\/?$/i;
+	if (!pathMatch.test(location.pathname)) {
 		return;
 	}
 
-	console.log('filterShorts');
 	this.debugLog('filterShorts()', whitelistedChannels);
 
 	// Find all shorts
@@ -133,13 +146,6 @@ function filterShorts() {
 					this.debugLog(short);
 					short.hidden = false;
 				}
-
-				// // Replace URL
-				// this.debugLog('replacing url');
-				// this.debugLog(short);
-				// Array.from(short.getElementsByTagName('a'))
-				// 	.filter(a => /^.*\/shorts\/.+$/i.test(a.href))
-				// 	.forEach(a => a.href = a.href.replace(/\/shorts\//i, '/watch?v='));
 			}
 			else {
 				this.debugLog('hiding short');
