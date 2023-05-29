@@ -4,7 +4,7 @@
   "name": "__MSG_extensionName__",
   "description": "__MSG_extensionDescription__",
   "icons": {
-    "256": "icons/youtube-shorts-filter.png"
+    "256": "images/youtube-shorts-filter.png"
   },
   "background": {
     "scripts": ["scripts/background.js"]
