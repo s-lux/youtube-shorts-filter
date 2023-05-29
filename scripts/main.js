@@ -53,7 +53,9 @@ ytd-page-manager
 							a href="{channel id}"
 							{channel text}
 */
+const storageItems = ["enableAll", "whitelistedChannels"];
 let debugMode = false;
+let enableAll = true;
 let whitelistedChannels = [];
 let observer = null;
 let shortsUrlMatch = /((?:.+\.)?youtube\.com)\/shorts\/(.+$)/i;
@@ -64,18 +66,21 @@ if (shortsUrlMatch.exec(location.href)) {
 }
 
 this.debugLog('startup()');
-browser.storage.sync.get(["whitelistedChannels"])
+browser.storage.sync.get(storageItems)
 	.then(storage => {
 		this.debugLog('startup() -> storage loaded');
 		this.debugLog(storage);
+		enableAll = storage.enableAll;
 		whitelistedChannels = storage.whitelistedChannels;
 		this.filterShorts();
 	})
 	.catch(error => console.error(error));
 
-browser.storage.onChanged.addListener(storage => {
+browser.storage.sync.onChanged.addListener(storage => {
 	this.debugLog('listener: storage changed');
 	this.debugLog(storage);
+
+	enableAll = storage.enableAll.newValue;
 	whitelistedChannels = storage.whitelistedChannels.newValue;
 	this.filterShorts();
 });
@@ -140,25 +145,31 @@ function filterShorts() {
 					}
 				}
 			}
-			if (keep === true) {
-				if (short.hidden === true) {
-					this.debugLog('unhiding short');
-					this.debugLog(short);
-					short.hidden = false;
-				}
-			}
-			else {
+
+			if (enableAll === true && keep !== true) {
 				this.debugLog('hiding short');
 				this.debugLog(short);
 				short.hidden = true;
+			}
+			else if (short.hidden === true) {
+				this.debugLog('unhiding short');
+				this.debugLog(short);
+				short.hidden = false;
 			}
 		});
 	}
 	else {
 		shorts.forEach(short => {
-			this.debugLog('hiding short');
-			this.debugLog(short);
-			short.hidden = true;
+			if (enableAll === true) {
+				this.debugLog('hiding short');
+				this.debugLog(short);
+				short.hidden = true;
+			}
+			else if (short.hidden === true) {
+				this.debugLog('unhiding short');
+				this.debugLog(short);
+				short.hidden = false;
+			}
 		});
 	}
 }

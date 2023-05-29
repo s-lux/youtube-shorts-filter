@@ -1,10 +1,13 @@
 {
   "manifest_version": 2,
-  "version": "0.1.2",
+  "version": "0.2.0",
   "name": "__MSG_extensionName__",
   "description": "__MSG_extensionDescription__",
   "icons": {
     "256": "icons/youtube-shorts-filter.png"
+  },
+  "background": {
+    "scripts": ["scripts/background.js"]
   },
   "permissions": [
     "storage"
@@ -15,7 +18,7 @@
         "*://*.youtube.com/*"
       ],
       "js": [
-        "./src/main.js"
+        "scripts/main.js"
       ],
       "run_at": "document_idle"
     }
@@ -23,10 +26,10 @@
   "default_locale": "en",
   "browser_action": {
     "default_icon": {
-      "256": "icons/youtube-shorts-filter.png"
+      "256": "images/youtube-shorts-filter.png"
     },
     "default_title": "YouTube-Shorts Filter",
-    "default_popup": "./src/popup.html"
+    "default_popup": "pages/popup.html"
   },
   "browser_specific_settings": {
     "gecko": {

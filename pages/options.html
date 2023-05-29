@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<link href="../styles/options.css" rel="stylesheet">
+		<script src="../scripts/options.js"></script>
+	</head>
+	<body>
+		<div class="header">
+			<img id="titleIcon" src="../images/youtube-shorts-filter.png" class="image">
+			<div id="titleText">{title text}</div>
+		</div>
+
+		<fieldset id="whitelist" class="group">
+			<legend id="whitelistLegendLabel" class="title">
+				{Group Text}
+			</legend>
+
+			<label for="whitelistChannelName">
+				<span id="whitelistChannelNameLabel">
+					{Add Channel Label}
+				</span>
+				<br/>
+			</label>
+
+			<table id="channelAdd" class="table add">
+				<tbody>
+					<tr>
+						<td>
+							<input id="whitelistChannelName" type="text" class="textbox">
+						</td>
+						<td>
+							<input id="whitelistChannelAdd" type="button" value="{Add}" class="button">
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<table id="channelList" class="table list">
+				<tbody>
+					<tr>
+						<td>Test entry 1</td>
+					</tr>
+					<tr>
+						<td>Test entry 2</td>
+					</tr>
+					<tr>
+						<td>Test entry 3</td>
+					</tr>
+					<tr>
+						<td>Test entry 4</td>
+					</tr>
+					<tr>
+						<td>Test entry 5</td>
+					</tr>
+				</tbody>
+			</table>
+		</fieldset>
+
+		<div class="info">
+			<span id="versionLabel">{VersionLabel}</span>
+			<span id="versionNumber">{VersionNumber}</span>
+		</div>
+	</body>
+</html>

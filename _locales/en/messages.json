@@ -5,6 +5,21 @@
 	"extensionDescription": {
 		"message": "Filters out YouTube-Shorts from the home page, subscriptions and search results."
 	},
+	"popupTitle1":{
+		"message": "YouTube-"
+	},
+	"popupTitle2":{
+		"message": "Shorts Filter"
+	},
+	"popupOptions":{
+		"message": "Options"
+	},
+	"popupEnabled":{
+		"message": "Enabled"
+	},
+	"popupDisabled":{
+		"message": "Disabled"
+	},
 	"groupLegendWhitelist": {
 		"message": "Whitelist channels"
 	},

@@ -1,16 +1,14 @@
-window.onload = function() {
-	drawChannels();
+const storageItems = ["enableAll", "whitelistedChannels"];
 
+window.onload = function() {
 	let addButton = document.getElementById("whitelistChannelAdd");
 	addButton.value = browser.i18n.getMessage("addButton");
-	addButton.addEventListener("click", e => {
+	addButton.addEventListener("click", () => {
 		addChannelEvent();
 	});
 
-	// Set language
-	document.getElementById("main-icon").title = browser.i18n.getMessage("extensionName");
-	document.getElementById("title").innerText = browser.i18n.getMessage("extensionName");
-	//extensionDescription
+	// Get localized texts
+	document.getElementById("titleText").innerText = browser.i18n.getMessage("extensionName");
 	document.getElementById("whitelistLegendLabel").innerText = browser.i18n.getMessage("groupLegendWhitelist");
 	document.getElementById("whitelistChannelNameLabel").innerText = browser.i18n.getMessage("channelNameLabel");
 	document.getElementById("whitelistChannelAdd").value = browser.i18n.getMessage("addButton");
@@ -19,10 +17,12 @@ window.onload = function() {
 	document.getElementById("versionLabel").innerText = browser.i18n.getMessage("version");
 	const manifest = browser.runtime.getManifest();
 	document.getElementById("versionNumber").innerText = manifest.version;
+
+	drawChannels();
 };
 
 function drawChannels() {
-	browser.storage.sync.get(["whitelistedChannels"])
+	browser.storage.sync.get(storageItems)
 		.then(storage => {
 			if (storage.whitelistedChannels !== undefined &&
 				storage.whitelistedChannels !== null
@@ -68,7 +68,7 @@ function addChannelEvent() {
 	if (channel == undefined || channel == null || channel == "")
 		return;
 
-	browser.storage.sync.get(["whitelistedChannels"])
+	browser.storage.sync.get(storageItems)
 		.then(storage => {
 			if (storage.whitelistedChannels === undefined ||
 				storage.whitelistedChannels === null
@@ -108,7 +108,7 @@ function removeChannelEvent(buttonId) {
 
 	const id = buttonId.substr(6);
 
-	browser.storage.sync.get(["whitelistedChannels"])
+	browser.storage.sync.get(storageItems)
 		.then(storage => {
 			if (storage.whitelistedChannels !== undefined &&
 				storage.whitelistedChannels !== null

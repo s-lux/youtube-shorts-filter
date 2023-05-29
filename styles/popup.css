@@ -1,0 +1,112 @@
+@import './variables.css';
+
+body {
+	background-color: var(--background);
+	color: var(--foreground);
+	font-family: sans-serif;
+	font-size: 14pt;
+	padding: .25em .5em 0 .5em;
+	user-select: none;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+.hidden {
+	display: none;
+}
+
+.icon-spacer {
+	padding-left: .33em;
+}
+
+.separator {
+	border-color: var(--primary-weak);
+	border-style: solid;
+	border-width: 1px 0 0 0;
+}
+
+.title-image {
+	text-align: right;
+}
+
+.title-image > img {
+	vertical-align: middle;
+	width: 48px;
+}
+
+.title-text {
+	font-weight: bold;
+}
+
+.options-row>td {
+	padding: .25em 0;
+	margin-bottom: 1em;
+	font-size: 16pt;
+}
+
+.styled-input {
+	align-items: center;
+	display: flex;
+}
+
+.styled-input>* {
+	cursor: pointer;
+}
+
+.styled-button,
+.styled-checkbox {
+	justify-content: right;
+}
+
+.styled-button {
+	position: relative;
+}
+
+.styled-button>.image {
+	height: 48px;
+	width: 48px;
+}
+
+.styled-button>.clickable {
+	bottom: 0;
+	width: 48px;
+	position: absolute;
+	right: 0;
+	top: 0;
+}
+
+.styled-checkbox>.checkbox {
+	background-color: var(--background);
+	border-radius: 16px;
+	box-shadow: 0px 0px 0px 1px inset var(--primary-base);
+	display: inline-block;
+	height: 32px;
+	position: relative;
+	width: 64px;
+}
+
+.styled-checkbox>.checkbox>.check {
+	background-color: var(--primary-weak);
+	border-radius: 50%;
+	height: 24px;
+	left: 1px;
+	margin: 4px;
+	position: absolute;
+	top: 0;
+	width: 24px;
+}
+
+.styled-checkbox>.hidden:checked~.checkbox {
+	background-color: var(--primary-base);
+}
+
+.styled-checkbox>.hidden:checked~.checkbox>.check {
+	background-color: var(--primary-weakest);
+	transform: translateX(31px);
+}
+
+svg g.gear {
+	fill: var(--primary-base);
+}
