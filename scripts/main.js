@@ -70,8 +70,18 @@ browser.storage.sync.get(storageItems)
 	.then(storage => {
 		this.debugLog('startup() -> storage loaded');
 		this.debugLog(storage);
-		enableAll = storage.enableAll;
-		whitelistedChannels = storage.whitelistedChannels;
+
+		if (storage.enableAll !== undefined &&
+			storage.enableAll !== null
+		) {
+			enableAll = storage.enableAll;
+		}
+
+		if (storage.whitelistedChannels !== undefined &&
+			storage.whitelistedChannels !== null
+		) {
+			whitelistedChannels = storage.whitelistedChannels;
+		}
 		this.filterShorts();
 	})
 	.catch(error => console.error(error));
@@ -80,8 +90,21 @@ browser.storage.sync.onChanged.addListener(storage => {
 	this.debugLog('listener: storage changed');
 	this.debugLog(storage);
 
-	enableAll = storage.enableAll.newValue;
-	whitelistedChannels = storage.whitelistedChannels.newValue;
+	if (storage.enableAll !== undefined &&
+		storage.enableAll !== null &&
+		storage.enableAll.newValue !== undefined &&
+		storage.enableAll.newValue !== null
+	) {
+		enableAll = storage.enableAll.newValue;
+	}
+
+	if (storage.whitelistedChannels !== undefined &&
+		storage.whitelistedChannels !== null &&
+		storage.whitelistedChannels.newValue !== undefined &&
+		storage.whitelistedChannels.newValue !== null
+	) {
+		whitelistedChannels = storage.whitelistedChannels.newValue;
+	}
 	this.filterShorts();
 });
 

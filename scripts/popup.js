@@ -5,7 +5,6 @@ window.onload = function () {
 	checkbox.disabled = true;
 	checkbox.checked = true;
 	checkbox.addEventListener("change", e => {
-
 		browser.storage.sync.get(storageItems)
 		.then(storage => {
 			storage.enableAll = e.target.checked === true;

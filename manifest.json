@@ -1,17 +1,19 @@
 {
-  "manifest_version": 2,
-  "version": "0.2.0",
-  "name": "__MSG_extensionName__",
-  "description": "__MSG_extensionDescription__",
-  "icons": {
-    "256": "images/youtube-shorts-filter.png"
-  },
   "background": {
     "scripts": ["scripts/background.js"]
   },
-  "permissions": [
-    "storage"
-  ],
+  "browser_action": {
+    "default_icon": {
+      "256": "images/youtube-shorts-filter.png"
+    },
+    "default_title": "YouTube-Shorts Filter",
+    "default_popup": "pages/popup.html"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{610a9e8c-8027-487f-82ab-bcf84c796098}"
+    }
+  },
   "content_scripts": [
     {
       "matches": [
@@ -24,16 +26,18 @@
     }
   ],
   "default_locale": "en",
-  "browser_action": {
-    "default_icon": {
-      "256": "images/youtube-shorts-filter.png"
-    },
-    "default_title": "YouTube-Shorts Filter",
-    "default_popup": "pages/popup.html"
+  "description": "__MSG_extensionDescription__",
+  "developer": {
+    "name": "Lux",
+    "url": "https://github.com/s-lux"
   },
-  "browser_specific_settings": {
-    "gecko": {
-      "id": "{610a9e8c-8027-487f-82ab-bcf84c796098}"
-    }
-  }
+  "icons": {
+    "256": "images/youtube-shorts-filter.png"
+  },
+  "manifest_version": 2,
+  "name": "__MSG_extensionName__",
+  "permissions": [
+    "storage"
+  ],
+  "version": "0.2.1"
 }

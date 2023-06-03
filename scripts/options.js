@@ -24,20 +24,19 @@ window.onload = function() {
 function drawChannels() {
 	browser.storage.sync.get(storageItems)
 		.then(storage => {
+			const channelsTable = document.getElementById("channelList");
+
+			// Delete existing table
+			while (channelsTable.rows.length > 0) {
+				channelsTable.deleteRow(0);
+			}
+
 			if (storage.whitelistedChannels !== undefined &&
 				storage.whitelistedChannels !== null
 			) {
 				const buttonText = browser.i18n.getMessage("removeButton");
-				const channelsTable = document.getElementById("channelList");
-
-				// Delete existing table
-				while (channelsTable.rows.length > 0) {
-					channelsTable.deleteRow(0);
-				}
-
 				for (i = 0; i < storage.whitelistedChannels.length; i++) {
 					const channel = storage.whitelistedChannels[i];
-
 					const row = channelsTable.insertRow();
 
 					const cell1 = row.insertCell();
