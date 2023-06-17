@@ -31,76 +31,236 @@ ytd-page-manager
 							a href="{channel id}"
 								{channel text}
 */
-const storageItems = ["enableAll", "whitelistedChannels"];
-const debugMode = false;
-let enableAll = true;
-let whitelistedChannels = [];
+const debugMode = false; // If true, additional details are being logged
+const logType_Info = 0;
+const logType_Warning = 1;
+const logType_Error = 2;
+const logType_Debug = 3;
+const subsUrlMatch = /(?:.+\.)?youtube\.com\/feed\/subscriptions\/?$/i; // Regular expression of the URL for subscriptions
+const shortsUrlMatch = /((?:.+\.)?youtube\.com)\/shorts\/(.+$)/i; // Regular expression of the URL for shorts
+const storageItems = ['enableAll', 'whitelistedChannels']; // Keys of the data items in the browser storage
 
-const shortsUrlMatch = /((?:.+\.)?youtube\.com)\/shorts\/(.+$)/i;
+// Shorts redirection
+function checkRedirection() {
+	// If currently on a video in short-mode, redirect to the same video in default-mode
+	if (shortsUrlMatch.test(location.href)) {
+		this.log('Redirecting shorts url.', logType_Info);
+		location.href = location.href.replace(shortsUrlMatch, '$1/watch?v=$2');
+		return true;
+	}
 
-if (shortsUrlMatch.exec(location.href)) {
-	this.debugLog('redirecting shorts url to video url');
-	location.href = location.href.replace(shortsUrlMatch, '$1/watch?v=$2');
+	// Watch YouTube's navigation event (doesn't trigger a page reload, code above will not be run again)
+	// If going to a video in short-mode, go back and redirect to the video in default-mode instead
+	document.addEventListener('yt-navigate-start', event => {
+		this.log('document.on(yt-navigate-start)', logType_Debug, event);
+
+		if (shortsUrlMatch.test(event.target.baseURI)) {
+			this.log('Redirecting shorts url.', logType_Info);
+			history.back();
+			location.href = event.target.baseURI.replace(shortsUrlMatch, '$1/watch?v=$2');
+		}
+	});
+
+	return false;
 }
 
-this.debugLog('startup()');
-browser.storage.sync.get(storageItems)
-	.then(storage => {
-		this.debugLog('startup() -> storage loaded');
-		this.debugLog(storage);
+// Shorts filtering
+const channelUrlMatch1 = /\/(?<name>@[^\/]+)/i;
+const channelUrlMatch2 = /\/channel\/(?<name>[^\/]+)/i;
 
+const observer = new MutationObserver(records => {
+	// Check the changes for videos
+	this.findMutatedVideos(records);
+});
+
+let enableAll = true;
+let whitelistedChannels = [];
+let videoContainer = null;
+let settingsLoaded = false;
+
+// If already determined that we are currently on a video in short-mode, skip the rest of the code.
+// Check the URL and only run the filter on the subscriptions page.
+if (!this.checkRedirection() &&
+	subsUrlMatch.test(location.href)
+) {
+	this.log('Starting up!', logType_Info);
+
+	// This will only work if the page is done loading, for example if main.js is reloaded; otherwise wait for event "yt-page-data-updated"
+	this.findVideoContainer();
+
+	// YouTube event that triggers when the necessary parts of the page have loaded
+	document.addEventListener('yt-page-data-updated', event => {
+		if (videoContainer === null &&
+			event !== null &&
+			event.target.tagName.toLowerCase() === 'ytd-page-manager'
+		) {
+			// The pageManager now contains the necessary data
+			this.findVideoContainer();
+		}
+	});
+
+	// Load the settings from browser storage
+	browser.storage.sync.get(storageItems)
+		.then(storage => {
+			this.log('storage.sync.get.then', logType_Debug, storage);
+
+			// Set 'enableAll' value if it was in storage (otherwise stay with default)
+			if (storage.enableAll !== undefined &&
+				storage.enableAll !== null
+			) {
+				enableAll = storage.enableAll;
+			}
+
+			// Set 'whitelistedChannels' value if it was in storage (otherwise stay with default)
+			if (storage.whitelistedChannels !== undefined &&
+				storage.whitelistedChannels !== null
+			) {
+				whitelistedChannels = storage.whitelistedChannels;
+			}
+			settingsLoaded = true;
+
+			// Check the entire grid for videos
+			this.findAllVideos();
+		})
+		.catch(error => this.log('Error!', logType_Error, error));
+
+	// Browser event that triggers when the settings have changed
+	browser.storage.sync.onChanged.addListener(storage => {
+		this.log('storage.sync.onChanged', logType_Debug, storage);
+
+		// Update 'enableAll' value if it has changed
 		if (storage.enableAll !== undefined &&
-			storage.enableAll !== null
+			storage.enableAll !== null &&
+			storage.enableAll.newValue !== undefined &&
+			storage.enableAll.newValue !== null
 		) {
-			enableAll = storage.enableAll;
+			enableAll = storage.enableAll.newValue;
 		}
 
+		// Update 'whitelistedChannels' value if it has changed
 		if (storage.whitelistedChannels !== undefined &&
-			storage.whitelistedChannels !== null
+			storage.whitelistedChannels !== null &&
+			storage.whitelistedChannels.newValue !== undefined &&
+			storage.whitelistedChannels.newValue !== null
 		) {
-			whitelistedChannels = storage.whitelistedChannels;
+			whitelistedChannels = storage.whitelistedChannels.newValue;
 		}
-		this.filterShorts();
-	})
-	.catch(error => console.error(error));
 
-browser.storage.sync.onChanged.addListener(storage => {
-	this.debugLog('listener: storage changed');
-	this.debugLog(storage);
+		// Check the entire grid for videos
+		this.findAllVideos();
+	});
+}
 
-	if (storage.enableAll !== undefined &&
-		storage.enableAll !== null &&
-		storage.enableAll.newValue !== undefined &&
-		storage.enableAll.newValue !== null
-	) {
-		enableAll = storage.enableAll.newValue;
+function findVideoContainer() {
+	// Find the div containing the video grid, and assign it to the 'videoContainer' variable
+	videoContainer = document.querySelector('ytd-page-manager div#primary>ytd-rich-grid-renderer>div#contents');
+	if (videoContainer !== null) {
+		// Observer to watch for changes in the 'items-per-row' attribute of all of 'videoContainer' element's recursive child elements
+		observer.observe(videoContainer, {
+			subtree: true,
+			childList: false,
+			attributeFilter: ['items-per-row'],
+			attributeOldValue: true,
+		});
+	}
+}
+
+function findMutatedVideos(records) {
+	// If there are any changes, and the settings have been loaded
+	if (records !== null) {
+		// If the 'items-per-row' attributes of 'ytd-rich-item-renderer' elements have changed
+		const videos = records
+			.filter(record => record.type === 'attributes' &&
+				record.oldValue !== null &&
+				record.target.tagName.toLowerCase() === 'ytd-rich-item-renderer' &&
+				!record.target.parentElement.parentElement.hidden)
+			.map(record => record.target)
+			.filter((element, ix, elements) => elements.indexOf(element) === ix);
+
+		this.filterVideos(videos);
+	}
+}
+
+function findAllVideos() {
+	// If page contains the video grid, and the settings have been loaded
+	if (videoContainer !== null && settingsLoaded === true) {
+		// Find all videos
+		const videos = Array.from(videoContainer.querySelectorAll('ytd-rich-grid-row ytd-rich-item-renderer'));
+
+		this.filterVideos(videos);
+	}
+}
+
+function filterVideos(videos) {
+	// Check whether to keep video
+	if (videos.length > 0) {
+		this.log(`filtering ${videos.length} videos`, logType_Info);
+
+		videos.forEach(video => {
+			// Load video info
+			const videoInfo = this.getVideoInfo(video);
+
+			// Hide the video if global filtering is enabled, the video is a short, and the channel is not whitelisted
+			// Otherwise, show it if it is currently hidden
+			if (enableAll === true && videoInfo.isShort && !this.isWhitelisted(videoInfo.channelName, videoInfo.channelId)) {
+				this.log('hiding video', logType_Debug, videoInfo.videoTitle);
+				video.hidden = true;
+			}
+			else if (video.hidden === true) {
+				this.log('unhiding video', logType_Debug, videoInfo.videoTitle);
+				video.hidden = false;
+			}
+		});
+	}
+}
+
+function getVideoInfo(video) {
+	// Load the information necessary to determine if a video is a short, and if it is from a whitelisted channel
+	// Find the 'div' element that contains all the required information
+	const videoDiv = video.querySelector('ytd-rich-grid-media>div#dismissible');
+
+	let channelName = '';
+	let channelId = '';
+	let videoTitle = '';
+	let isShort = false;
+
+	// Find the 'a' element that links to the video's channel
+	const channelLink = getChildElement(videoDiv, ['div#details', 'a#avatar-link']);
+	if (channelLink !== null) {
+		// The channel's name
+		channelName = channelLink.title;
+
+		// the channel's id in '@ChannelName' format
+		// or the channel's internal id
+		if (channelUrlMatch1.test(channelLink.href))
+			channelId = channelUrlMatch1.exec(channelLink.href).groups.name;
+		else if (channelUrlMatch2.test(channelLink.href))
+			channelId = channelUrlMatch2.exec(channelLink.href).groups.name;
 	}
 
-	if (storage.whitelistedChannels !== undefined &&
-		storage.whitelistedChannels !== null &&
-		storage.whitelistedChannels.newValue !== undefined &&
-		storage.whitelistedChannels.newValue !== null
-	) {
-		whitelistedChannels = storage.whitelistedChannels.newValue;
+	// Find the 'a' element that links to the video
+	const videoLink = getChildElement(videoDiv, ['div#details', 'a#video-title-link']);
+	if (videoLink !== null) {
+		// The video's title
+		videoTitle = videoLink.title
+		// Check if the video links to a short
+		isShort = shortsUrlMatch.test(videoLink.href);
 	}
-	this.filterShorts();
-});
 
-const observer = new MutationObserver(() => this.filterShorts());
-observer.observe(document.querySelector('#content'), {
-	childList: true,
-	subtree: true
-});
-
-document.addEventListener("yt-navigate-start", event => {
-	if (shortsUrlMatch.exec(event.target.baseURI)) {
-		this.debugLog('redirecting shorts url to video url');
-		history.back();
-		location.href = event.target.baseURI.replace(shortsUrlMatch, '$1/watch?v=$2');
-	}
-});
+	return {
+		channelName,
+		channelId,
+		videoTitle,
+		isShort,
+	};
+}
 
 function getChildElement(parentElement, selectors) {
+	// Unfortunately the otherwise very helpful 'querySelector' function doesn't work for all elements.
+	// Assuming it is because some of the DOM is loaded after the page is done loading as far as the browser knows
+	// Thus this function tries to do something similar for elements where 'querySelector' doesn't work
+	this.log('getChildElement', logType_Debug, [parentElement, selectors]);
+
 	const selectorMatch1 = /^(?<tag>[\w-]+)(#(?<id>[^#\[\.]+))?\s*?(?<attrs>\[.+\])?$/i;
 	const selectorMatch2 = /\[(?<name>[\w-]+?)\s*?=\s*?(?:"(?<val1>.*?)"|(?<val2>.*?))\]/ig;
 	let childElement = null;
@@ -130,136 +290,49 @@ function getChildElement(parentElement, selectors) {
 	return childElement;
 }
 
-function filterShorts() {
-	// Check the path and only run the filter on pages where filtering is currently implemented.
-	const pathMatch = /^\/feed\/subscriptions\/?$/i;
-	if (!pathMatch.test(location.pathname)) {
-		return;
-	}
-
-	this.debugLog('filterShorts()', whitelistedChannels);
-
-	// const videos = Array.from(document.querySelectorAll('ytd-page-manager ytd-rich-grid-renderer ytd-rich-item-renderer ytd-rich-grid-media>div#dismissible'));
-	// videos.forEach(video => {
-	// 	const videoLink1 = getChildElement(video, ['ytd-thumbnail', 'a#thumbnail']);
-	// 	if (videoLink1 === null) return;
-
-	// 	// if (shortsUrlMatch.exec(videoLink1.href)) {
-	// 	// 	videoLink1.href = videoLink1.href.replace(shortsUrlMatch, '$1/watch?v=$2');
-	// 	// }
-
-	// 	const statusRenderer = getChildElement(videoLink1, ['ytd-thumbnail-overlay-time-status-renderer']);
-	// 	if (statusRenderer === null) return;
-
-	// 	if (statusRenderer.attributes['overlay-style'].value === 'shorts') {
-	// 		video.style.display = 'hidden';
-	// 	}
-
-	// 	const videoDetails = getChildElement(video, ['div#details']);
-	// 	if (videoDetails === null) return;
-
-	// 	const videoLink2 = getChildElement(videoDetails, ['a#video-title-link']);
-	// 	if (videoLink2 === null) return;
-
-	// 	// const videoText2 = getChildElement(videoLink2, ['yt-formatted-string#video-title']);
-	// 	// if (videoText2 === null) return;
-
-	// 	const channelLink = getChildElement(videoDetails, ['a#avatar-link']); // Option 1
-	// 	//const channelLink = getChildElement(videoDetails, ['ytd-channel-name#channel-name', 'a']); // Option 2
-	// 	if (channelLink === null) return;
-
-	// 	const channelTitle = channelLink.title; // Option 1
-	// 	//const channelTitle = channelLink.innerText; // Option 2
-	// 	const channelUrl = channelLink.href;
-
-	// 	return {
-	// 		channelTitle,
-	// 		channelUrl,
-	// 		type,
-	// 		videoTitle: videoLink2.title,
-	// 		videoUrl: videoLink2.href,
-	// 	};
-	// });
-
-	const channelUrlMatch1 = /\/(?<name>@[^\/]+)/i;
-	const channelUrlMatch2 = /\/channel\/(?<name>[^\/]+)/i;
-
-	// Find all videos
-	const videos = Array.from(document.querySelectorAll('ytd-page-manager ytd-rich-grid-renderer ytd-rich-item-renderer'))
-		.map(video => {
-			let channelId = '';
-			let channelName = '';
-
-			const channelLink = getChildElement(video, ['ytd-rich-grid-media', 'div#dismissible', 'div#details', 'a#avatar-link']);
-			if (channelLink !== null) {
-				channelName = channelLink.title;
-
-				if (channelUrlMatch1.test(channelLink.href))
-					channelId = channelUrlMatch1.exec(channelLink.href).groups.name;
-				else if (channelUrlMatch2.test(channelLink.href))
-					channelId = channelUrlMatch2.exec(channelLink.href).groups.name;
-			}
-
-			let isShort = false;
-			const videoLink = getChildElement(video, ['ytd-thumbnail', 'a#thumbnail']);
-
-			if (videoLink !== null) {
-				const statusRenderer = getChildElement(videoLink, ['ytd-thumbnail-overlay-time-status-renderer']);
-				isShort = (statusRenderer !== null && statusRenderer.attributes['overlay-style'].value.toLowerCase() === 'shorts');
-			}
-
-			return {
-				channelName,
-				channelId,
-				isShort,
-				tag: video
-			};
-		});
-
-	this.debugLog('videos[].length', videos.length);
-
-	if (whitelistedChannels !== undefined &&
-		whitelistedChannels !== null
-	) {
-		// Check whether to keep video
-		videos.forEach(video => {
-			let keep = video.isShort !== true ||
-				whitelistedChannels.find(wlc => wlc.name.toLowerCase() === video.channelName.toLowerCase() ||
-					wlc.name.toLowerCase() === video.channelId.toLowerCase()) !== undefined;
-
-			if (enableAll === true && keep !== true) {
-				this.debugLog('hiding video');
-				//this.debugLog(video);
-				video.tag.hidden = true;
-			}
-			else if (video.tag.hidden === true) {
-				this.debugLog('unhiding video');
-				//this.debugLog(video);
-				video.tag.hidden = false;
-			}
-		});
+function isWhitelisted(channelName, channelId) {
+	// Check if a channel's name or id are in the whilelist
+	if (whitelistedChannels !== undefined && whitelistedChannels !== null) {
+		return whitelistedChannels.find(item => (channelName !== '' && item.name.toLowerCase() === channelName.toLowerCase()) ||
+			(channelId !== '' && item.name.toLowerCase() === channelId.toLowerCase())) !== undefined
 	}
 	else {
-		videos.forEach(video => {
-			if (enableAll === true && video.isShort === true) {
-				this.debugLog('hiding video');
-				//this.debugLog(video);
-				video.tag.hidden = true;
-			}
-			else if (video.tag.hidden === true) {
-				this.debugLog('unhiding video');
-				//this.debugLog(video);
-				video.tag.hidden = false;
-			}
-		});
+		return false;
 	}
 }
 
-function debugLog(message, info = null) {
-	if (debugMode) {
-		console.log(`YTFS: ${message}`);
-		if (info !== undefined && info !== null) {
-			console.log(`YTFS: ${JSON.stringify(info)}`);
+function log(message, type, details = null) {
+	// Log messages to the browser's console
+	switch (type) {
+		case logType_Info:
+		case logType_Debug: {
+			if (type === logType_Info || debugMode) {
+				if (details !== undefined && details !== null) {
+					console.log(`YTSF: ${message}\n${JSON.stringify(details)}`);
+				}
+				else {
+					console.log(`YTSF: ${message}`);
+				}
+			}
+			break;
+		}
+		case logType_Warning: {
+			if (details !== undefined && details !== null) {
+				console.warn(`YTSF: ${message}\n${JSON.stringify(details)}`);
+			}
+			else {
+				console.warn(`YTSF: ${message}`);
+			}
+			break;
+		}
+		case logType_Error: {
+			if (details !== undefined && details !== null) {
+				console.error(`YTSF: ${message}\n${JSON.stringify(details)}`);
+			}
+			else {
+				console.error(`YTSF: ${message}`);
+			}
+			break;
 		}
 	}
 }
