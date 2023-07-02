@@ -1,110 +1,100 @@
 @import './variables.css';
+@import './common.css';
 
 body {
-	background-color: var(--background);
-	color: var(--foreground);
-	font-family: sans-serif;
-	font-size: 14pt;
+	font-size: 12pt;
 	padding: .25em .5em 0 .5em;
 	user-select: none;
 }
 
-table {
-	border-collapse: collapse;
+.grid {
+	column-gap: .33em;
+	display: inline-grid;
+	grid-template:
+		'titleImage titleText1'
+		'titleImage titleText2'
+		'separator separator'
+		'checkIcon checkLabel'
+		'optionsIcon optionsLabel';
+	row-gap: .5em;
 }
 
-.hidden {
-	display: none;
+.grid>div {
+	align-content: center;
+	display: grid;
 }
 
-.icon-spacer {
-	padding-left: .33em;
-}
-
-.separator {
-	border-color: var(--primary-weak);
-	border-style: solid;
-	border-width: 1px 0 0 0;
-}
-
-.title-image {
-	text-align: right;
-}
-
-.title-image > img {
-	vertical-align: middle;
-	width: 48px;
-}
-
-.title-text {
-	font-weight: bold;
-}
-
-.options-row>td {
-	padding: .25em 0;
-	margin-bottom: 1em;
-	font-size: 16pt;
-}
-
-.styled-input {
-	align-items: center;
-	display: flex;
-}
-
-.styled-input>* {
-	cursor: pointer;
-}
-
-.styled-button,
-.styled-checkbox {
+.grid>.left {
 	justify-content: right;
 }
 
+.grid>.title-image {
+	grid-area: titleImage;
+}
+
+.grid>.title-image>img {
+	width: 36pt;
+}
+
+.grid>.title-text {
+	font-weight: bold;
+	font-size: 1.25em;
+}
+
+.grid>.title-text.r1 {
+	grid-area: titleText1;
+	margin-bottom: -.4em;
+}
+
+.grid>.title-text.r2 {
+	grid-area: titleText2;
+}
+
+.grid>.separator {
+	grid-area: separator;
+}
+
+.grid>.separator>hr {
+	border-color: var(--primary-weak);
+	border-style: solid;
+	border-width: 1pt 0 0 0;
+	margin: 0;
+}
+
+.grid>.check-icon {
+	grid-area: checkIcon;
+}
+
+.grid>.check-label {
+	font-size: 1.25em;
+	grid-area: checkLabel;
+}
+
+.grid>.options-icon {
+	grid-area: optionsIcon;
+}
+
+.grid>.options-label {
+	font-size: 1.25em;
+	grid-area: optionsLabel;
+}
+
 .styled-button {
+	justify-content: right;
 	position: relative;
 }
 
 .styled-button>.image {
-	height: 48px;
-	width: 48px;
+	height: 36pt;
+	width: 36pt;
 }
 
 .styled-button>.clickable {
 	bottom: 0;
-	width: 48px;
+	width: 36pt;
 	position: absolute;
 	right: 0;
 	top: 0;
-}
-
-.styled-checkbox>.checkbox {
-	background-color: var(--background);
-	border-radius: 16px;
-	box-shadow: 0px 0px 0px 1px inset var(--primary-base);
-	display: inline-block;
-	height: 32px;
-	position: relative;
-	width: 64px;
-}
-
-.styled-checkbox>.checkbox>.check {
-	background-color: var(--primary-weak);
-	border-radius: 50%;
-	height: 24px;
-	left: 1px;
-	margin: 4px;
-	position: absolute;
-	top: 0;
-	width: 24px;
-}
-
-.styled-checkbox>.hidden:checked~.checkbox {
-	background-color: var(--primary-base);
-}
-
-.styled-checkbox>.hidden:checked~.checkbox>.check {
-	background-color: var(--primary-weakest);
-	transform: translateX(31px);
 }
 
 svg g.gear {

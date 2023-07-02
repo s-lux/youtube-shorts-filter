@@ -13,9 +13,9 @@
 *   ┊         └─ytd-rich-grid-media
 *   ┊           └─div#dismissible
 *   ┊             └─div#details
-*   ┊               ├─a#avatar-link href="{channel url}" title="{channel title}" -> channel url: (@ChannelName)|channel/(ChannelId); var 'channelLink'
+*   ┊               ├─a#avatar-link href='{channel url}' title='{channel title}' -> channel url: (@ChannelName)|channel/(ChannelId); var 'channelLink'
 *   ┊               └┐
-*   ┊                └─a#video-title-link href="{video url}" title="{video title}" -> video url: /shorts/(VideoId)|/watch?v=(VideoId); var 'videoLink'
+*   ┊                └─a#video-title-link href='{video url}' title='{video title}' -> video url: /shorts/(VideoId)|/watch?v=(VideoId); var 'videoLink'
 <<List Layout>>
 *   └─ytd-section-list-renderer
 *     └─div#contents
@@ -27,7 +27,7 @@
 *              │└─div#title-container
 *              │  └┐
 *              │   └─div#image-container
-*              │     └─a href="{channel url}" title="{channel title}" -> channel url: (@ChannelName)|channel/(ChannelId); var 'channelLink'
+*              │     └─a href='{channel url}' title='{channel title}' -> channel url: (@ChannelName)|channel/(ChannelId); var 'channelLink'
 *              │       └─yt-img-shadow#avatar
 *              └─div#contents
 *                └┐
@@ -35,7 +35,17 @@
 *                   └┐
 *                    └─div#title-wrapper
 *                      └┐
-*                       └─a#video-title href="{video url}" title="{video title}" -> video url: /shorts/(VideoId)|/watch?v=(VideoId); var 'videoLink'
+*                       └─a#video-title href='{video url}' title='{video title}' -> video url: /shorts/(VideoId)|/watch?v=(VideoId); var 'videoLink'
+
+browser.storage.sync: {
+	enableAll: bool,
+	filterMode: 'whitelist'|'blacklist',
+	channelList: [{
+		id: number,
+		name: string,
+		enabled: bool,
+	}],
+}
 */
 const debugMode = false; // If true, additional details are being logged
 const logType_Info = 0;
@@ -44,11 +54,13 @@ const logType_Error = 2;
 const logType_Debug = 3;
 const subsUrlMatch = /(?:.+\.)?youtube\.com\/feed\/subscriptions(?:\?flow=\d)?\/?$/i; // Regular expression of the URL for subscriptions
 const shortsUrlMatch = /((?:.+\.)?youtube\.com)\/shorts\/(.+$)/i; // Regular expression of the URL for shorts
-const storageItems = ['enableAll', 'whitelistedChannels']; // Keys of the data items in the browser storage
+//const storageItems = ['enableAll', 'filterMode', 'channelList']; // Keys of the data items in the browser storage
+const storageItems = ['enableAll', 'filterMode', 'channelList', 'whitelistedChannels']; // Temporary, to convert 'whitelistedChannels' to 'channelList'; remove in next version
 const channelUrlMatch1 = /\/(?<name>@[^\/]+)/i;
 const channelUrlMatch2 = /\/channel\/(?<name>[^\/]+)/i;
 let enableAll = false;
-let whitelistedChannels = [];
+let filterMode = 'whitelist';
+let channelList = [];
 let settingsLoaded = false;
 let queueActive = false;
 let waitContainer = null;
@@ -56,7 +68,7 @@ let waitContainer = null;
 this.log('Initializing!', logType_Info);
 
 const app = document.querySelector('ytd-app');
-if (this.notNulUnd(app)) {
+if (!this.nulUnd(app)) {
 	waitContainer = document.createElement('div');
 	waitContainer.style.display = 'none'; // grid
 	waitContainer.style.inset = '0';
@@ -106,7 +118,7 @@ else if (subsUrlMatch.test(location.href)) {
 
 	// YouTube event that triggers when the necessary parts of the page have loaded
 	document.addEventListener('yt-page-data-updated', event => {
-		if (this.notNulUnd(event) &&
+		if (!this.nulUnd(event) &&
 			event.target.tagName.toLowerCase() === 'ytd-page-manager'
 		) {
 			// The pageManager now contains the necessary data -> queue filtering
@@ -119,13 +131,35 @@ else if (subsUrlMatch.test(location.href)) {
 		.then(storage => {
 			this.log('storage.sync.get.then', logType_Debug, { storage });
 
+			// Temp: convert 'whitelistedChannels' to 'channelList'
+			if (this.nulUnd(storage.channelList) &&
+				!this.nulUnd(storage.whitelistedChannels)
+			) {
+				storage.channelList = [];
+				storage.whitelistedChannels.forEach(wlc => {
+					storage.channelList.push({
+						id: wlc.id,
+						name: wlc.name,
+						enabled: true,
+					});
+				});
+				storage.whitelistedChannels = undefined;
+
+				browser.storage.sync.set(storage)
+					.catch(error => console.error(error));
+			}
+
 			// Set 'enableAll' value if it was in storage (otherwise stay with default)
-			if (this.notNulUnd(storage.enableAll))
+			if (!this.nulUnd(storage.enableAll))
 				enableAll = storage.enableAll;
 
-			// Set 'whitelistedChannels' value if it was in storage (otherwise stay with default)
-			if (this.notNulUnd(storage.whitelistedChannels))
-				whitelistedChannels = storage.whitelistedChannels;
+			// Set 'filterMode' value if it was in storage (otherwise stay with default)
+			if (!this.nulUnd(storage.filterMode))
+				filterMode = storage.filterMode;
+
+			// Set 'channelList' value if it was in storage (otherwise stay with default)
+			if (!this.nulUnd(storage.channelList))
+				channelList = storage.channelList;
 
 			settingsLoaded = true;
 
@@ -139,17 +173,24 @@ else if (subsUrlMatch.test(location.href)) {
 		this.log('storage.sync.onChanged', logType_Debug, { storage });
 
 		// Update 'enableAll' value if it has changed
-		if (this.notNulUnd(storage.enableAll) &&
-			this.notNulUnd(storage.enableAll.newValue)
+		if (!this.nulUnd(storage.enableAll) &&
+			!this.nulUnd(storage.enableAll.newValue)
 		) {
 			enableAll = storage.enableAll.newValue;
 		}
 
-		// Update 'whitelistedChannels' value if it has changed
-		if (this.notNulUnd(storage.whitelistedChannels) &&
-			this.notNulUnd(storage.whitelistedChannels.newValue)
+		// Update 'filterMode' value if it has changed
+		if (!this.nulUnd(storage.filterMode) &&
+			!this.nulUnd(storage.filterMode.newValue)
 		) {
-			whitelistedChannels = storage.whitelistedChannels.newValue;
+			filterMode = storage.filterMode.newValue;
+		}
+
+		// Update 'channelList' value if it has changed
+		if (!this.nulUnd(storage.channelList) &&
+			!this.nulUnd(storage.channelList.newValue)
+		) {
+			channelList = storage.channelList.newValue;
 		}
 
 		// Check the entire grid for videos
@@ -163,18 +204,18 @@ function queueFilter(wait) {
 	if (!queueActive && settingsLoaded) {
 		queueActive = true;
 		// Add visual indication that filter is queued
-		if (enableAll && this.notNulUnd(waitContainer) && subsUrlMatch.test(location.href))
+		if (enableAll && !this.nulUnd(waitContainer) && subsUrlMatch.test(location.href))
 			waitContainer.style.display = 'grid';
 
 		window.setTimeout(() => {
 			queueActive = false;
 			// Remove visual indication that filter is queued
-			if (this.notNulUnd(waitContainer))
+			if (!this.nulUnd(waitContainer))
 				waitContainer.style.display = 'none';
 
 			// Find the div containing the videos
 			const gridContainer = document.querySelector('ytd-page-manager div#primary>ytd-rich-grid-renderer>div#contents');
-			if (this.notNulUnd(gridContainer) && gridContainer.checkVisibility()) {
+			if (!this.nulUnd(gridContainer) && gridContainer.checkVisibility()) {
 				this.log('Filtering grid view', logType_Debug);
 
 				// Grid view
@@ -194,7 +235,7 @@ function queueFilter(wait) {
 			}
 			else {
 				const listContainer = document.querySelector('ytd-page-manager div#primary>ytd-section-list-renderer>div#contents');
-				if (this.notNulUnd(listContainer) && listContainer.checkVisibility()) {
+				if (!this.nulUnd(listContainer) && listContainer.checkVisibility()) {
 					this.log('Filtering list view', logType_Debug);
 
 					// List view
@@ -217,13 +258,13 @@ function queueFilter(wait) {
 
 const gridObserver = new MutationObserver(records => {
 	// If there are any changes, and the settings have been loaded
-	if (enableAll && this.notNulUnd(records)) {
+	if (enableAll && !this.nulUnd(records)) {
 		this.log('gridObserver.observe()', logType_Debug);
 
 		// If the 'items-per-row' attributes of 'ytd-rich-item-renderer' elements have changed
 		const videos = records
 			.filter(record => record.type === 'attributes' &&
-				this.notNulUnd(record.oldValue) &&
+				!this.nulUnd(record.oldValue) &&
 				record.target.tagName.toLowerCase() === 'ytd-rich-item-renderer' &&
 				record.target.parentElement.parentElement.tagName.toLowerCase() === 'ytd-rich-grid-row' &&
 				!record.target.parentElement.parentElement.hidden)
@@ -236,7 +277,7 @@ const gridObserver = new MutationObserver(records => {
 
 const listObserver = new MutationObserver(records => {
 	// If there are any changes, and the settings have been loaded
-	if (enableAll && this.notNulUnd(records)) {
+	if (enableAll && !this.nulUnd(records)) {
 		this.log('listObserver.observe()', logType_Debug);
 
 		const videos = records
@@ -251,7 +292,7 @@ const listObserver = new MutationObserver(records => {
 
 function filterVideos(videos, gridMode) {
 	// Check whether to keep video
-	if (this.notNulUnd(videos) && videos.length > 0) {
+	if (!this.nulUnd(videos) && videos.length > 0) {
 		this.log('filterVideos', logType_Debug, { videos, gridMode });
 
 		const hidden = [];
@@ -277,7 +318,7 @@ function filterVideos(videos, gridMode) {
 
 			// Find the 'a' element that links to the video's channel
 			const channelLink = video.querySelector(channelSelector);
-			if (this.notNulUnd(channelLink)) {
+			if (!this.nulUnd(channelLink)) {
 				// The channel's name
 				channelName = channelLink.title;
 
@@ -291,7 +332,7 @@ function filterVideos(videos, gridMode) {
 
 			// Find the 'a' element that links to the video
 			const videoLink = video.querySelector(videoSelector);
-			if (this.notNulUnd(videoLink)) {
+			if (!this.nulUnd(videoLink)) {
 				// The video's title
 				videoTitle = videoLink.title
 				// Check if the video links to a short
@@ -300,7 +341,7 @@ function filterVideos(videos, gridMode) {
 
 			// Hide the video if global filtering is enabled, the video is a short, and the channel is not whitelisted
 			// Otherwise, show it if it is currently hidden
-			if (enableAll && isShort && !this.isWhitelisted(channelName, channelId)) {
+			if (enableAll && isShort && this.isHideChannel(channelName, channelId)) {
 				hidden.push({ channelName, channelId, videoTitle });
 				video.hidden = true;
 			}
@@ -318,14 +359,30 @@ function filterVideos(videos, gridMode) {
 	}
 }
 
-function isWhitelisted(channelName, channelId) {
-	// Check if a channel's name or id are in the whilelist
-	if (this.notNulUnd(whitelistedChannels)) {
-		return whitelistedChannels.find(item => (channelName !== '' && item.name.toLowerCase() === channelName.toLowerCase()) ||
-			(channelId !== '' && item.name.toLowerCase() === channelId.toLowerCase())) !== undefined
+function isHideChannel(channelName, channelId) {
+	// Check if a channel's name or id are on the list
+	const channelMatch = [];
+	if (channelName !== '')
+		channelMatch.push(channelName.toLowerCase());
+
+	if (channelId !== '')
+		channelMatch.push(channelId.toLowerCase());
+
+	if (channelMatch.length === 0)
+		return false;
+
+	if (!this.nulUnd(channelList)) {
+		const channel = channelList.find(item => item.enabled &&
+			channelMatch.indexOf(item.name.toLowerCase()) !== -1);
+
+		if (channel !== undefined)
+			return filterMode === 'blacklist';
+		else
+			return filterMode === 'whitelist';
+
 	}
 	else {
-		return false;
+		return filterMode === 'whitelist';
 	}
 }
 
@@ -349,12 +406,12 @@ function log(message, type, details = null) {
 			console.trace();
 		}
 
-		if (this.notNulUnd(details))
+		if (!this.nulUnd(details))
 			console.log(details);
 		console.groupEnd();
 	}
 }
 
-function notNulUnd(object) {
-	return object !== undefined && object !== null;
+function nulUnd(object) {
+	return object === undefined || object === null;
 }

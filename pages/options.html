@@ -6,59 +6,103 @@
 		<script src="../scripts/options.js"></script>
 	</head>
 	<body>
-		<div class="header">
-			<img id="titleIcon" src="../images/youtube-shorts-filter.png" class="image">
-			<div id="titleText">{title text}</div>
-		</div>
-
-		<fieldset id="whitelist" class="group">
-			<legend id="whitelistLegendLabel" class="title">
-				{Group Text}
-			</legend>
-
-			<label for="whitelistChannelName">
-				<span id="whitelistChannelNameLabel">
-					{Add Channel Label}
-				</span>
-				<br/>
-			</label>
-
-			<table id="channelAdd" class="table add">
-				<tbody>
-					<tr>
-						<td>
-							<input id="whitelistChannelName" type="text" class="textbox">
-						</td>
-						<td>
-							<input id="whitelistChannelAdd" type="button" value="{Add}" class="button">
-						</td>
-					</tr>
-				</tbody>
-			</table>
-			<table id="channelList" class="table list">
-				<tbody>
-					<tr>
-						<td>Test entry 1</td>
-					</tr>
-					<tr>
-						<td>Test entry 2</td>
-					</tr>
-					<tr>
-						<td>Test entry 3</td>
-					</tr>
-					<tr>
-						<td>Test entry 4</td>
-					</tr>
-					<tr>
-						<td>Test entry 5</td>
-					</tr>
-				</tbody>
-			</table>
-		</fieldset>
-
-		<div class="info">
-			<span id="versionLabel">{VersionLabel}</span>
-			<span id="versionNumber">{VersionNumber}</span>
+		<div class="grid">
+			<div class="row title">
+				<div class="image">
+					<img src="../images/youtube-shorts-filter.png">
+				</div>
+				<div id="extensionName">
+					{extension name}
+				</div>
+			</div>
+			<div class="separator">
+				<hr />
+			</div>
+			<div class="row enable">
+				<div class="icon">
+					<label for="enableAll" class="styled-input styled-checkbox">
+						<input id="enableAll" type="checkbox" class="hidden">
+						<span class="checkbox">
+							<span class="check"></span>
+						</span>
+					</label>
+				</div>
+				<div class="text">
+					<label for="enableAll" class="styled-input">
+						<span id="enableAllText" class="input-label">
+							{global enable text}
+						</span>
+					</label>
+				</div>
+			</div>
+			<div class="row mode">
+				<div class="icon">
+					<label for="mode" class="styled-input styled-checkbox">
+						<input id="mode" type="checkbox" class="hidden">
+						<span class="checkbox">
+							<span class="check"></span>
+						</span>
+					</label>
+				</div>
+				<div class="text">
+					<label for="mode" class="styled-input">
+						<span id="modeText" class="input-label">
+							{mode text}
+						</span>
+					</label>
+				</div>
+			</div>
+			<div id="listTitle" class="group text">
+				{group text}
+			</div>
+			<div class="row add nogap">
+				<div class="input">
+					<input id="listInput" type="text" placeholder="{add channel text}" class="textbox">
+				</div>
+				<div>
+					<input id="listAdd" type="button" value="{add}" class="button">
+				</div>
+			</div>
+			<div style="display: none;">
+				<div id="rowTemplate" class="list-main-row">
+					<div class="icon">
+						<label for="enableTemplate" class="styled-input styled-checkbox">
+							<input id="enableTemplate" type="checkbox" class="hidden">
+							<span class="checkbox">
+								<span class="check"></span>
+							</span>
+						</label>
+					</div>
+					<div class="list-sub-row">
+						<div class="channel-name">
+							{channel name}
+						</div>
+						<div class="remove">
+							<input type="button" value="{remove}" class="button">
+						</div>
+					</div>
+				</div>
+			</div>
+			<div id="channelTable" class="grid">
+			</div>
+			<div class="row last group">
+				<div class="version">
+					<span id="versionLabel">
+						{version label}
+					</span>
+					<a id="versionNumber" href="{version url}" target="_blank">
+						{version number}
+					</a>
+				</div>
+				<div class="developer">
+					<span id="developerLabel">
+						{developer label}
+					</span>
+					<a id="developerName" href="{developer url}" target="_blank">
+						{developer name}
+					</a>
+				</div>
+			</div>
 		</div>
 	</body>
 </html>

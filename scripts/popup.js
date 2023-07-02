@@ -1,53 +1,64 @@
-const storageItems = ["enableAll", "whitelistedChannels"];
+const storageItems = ['enableAll', 'filterMode', 'channelList'];
+
+let enableCheck;
+let enableSpan;
+let enabledText;
+let disabledText;
 
 window.onload = function () {
-	let checkbox = document.getElementById("enableAll");
-	checkbox.disabled = true;
-	checkbox.checked = true;
-	checkbox.addEventListener("change", e => {
-		browser.storage.sync.get(storageItems)
-		.then(storage => {
-			storage.enableAll = e.target.checked === true;
-
-			browser.storage.sync.set(storage)
-				.catch(error => console.error(error));
-		})
-		.catch(error => console.error(error));
-
-		switchEnabled();
-	});
-
-	let optionsButton = document.getElementById("optionsButton");
-	optionsButton.addEventListener("click", () => {
-		browser.runtime.sendMessage("openOptions");
-	});
+	// Find HTML elements
+	const extensionNameDiv1 = document.getElementById('extensionName1');
+	const extensionNameDiv2 = document.getElementById('extensionName2');
+	enableCheck = document.getElementById('enableAll');
+	enableSpan = document.getElementById('enableAllText');
+	const optionsButton = document.getElementById('options');
+	const optionsTextSpan = document.getElementById('optionsText');
 
 	// Get localized texts
-	document.getElementById("titleText1").innerText = browser.i18n.getMessage("popupTitle1");
-	document.getElementById("titleText2").innerText = browser.i18n.getMessage("popupTitle2");
-	document.getElementById("optionsButtonLabel").innerText = browser.i18n.getMessage("popupOptions");
+	extensionNameDiv1.innerText = browser.i18n.getMessage('extensionNameLine1');
+	extensionNameDiv2.innerText = browser.i18n.getMessage('extensionNameLine2');
+	enabledText = browser.i18n.getMessage('checkboxEnabled');
+	disabledText = browser.i18n.getMessage('checkboxDisabled');
+	enableSpan.innerText = disabledText;
+	optionsTextSpan.innerText = browser.i18n.getMessage('buttonOptions');
 
+	// Functionality
+	enableCheck.disabled = true;
+	enableCheck.checked = false;
+	enableCheck.addEventListener('change', e => {
+		browser.storage.sync.get(storageItems)
+			.then(storage => {
+				if (storage.enableAll !== e.target.checked) {
+					storage.enableAll = e.target.checked === true;
+
+					browser.storage.sync.set(storage)
+						.catch(error => console.error(error));
+				}
+			})
+			.catch(error => console.error(error));
+
+		this.switchEnabled();
+	});
+
+	optionsButton.addEventListener('click', () => {
+		browser.runtime.sendMessage('openOptions');
+	});
+
+	// Load settings from browser storage
 	browser.storage.sync.get(storageItems)
 		.then(storage => {
-			if (storage.enableAll !== undefined &&
-				storage.enableAll !== null &&
-				storage.enableAll !== true
-			) {
-				checkbox.checked = false;
-			}
-			checkbox.disabled = false;
+			enableCheck.checked = this.nulUnd(storage.enableAll) || storage.enableAll;
+			enableCheck.disabled = false;
 
-			switchEnabled();
+			this.switchEnabled();
 		})
 		.catch(error => console.error(error));
 };
 
 function switchEnabled() {
-	let checkbox = document.getElementById('enableAll');
-	let text = document.getElementById('enableAllText');
+	enableSpan.innerText = enableCheck.checked === true ? enabledText : disabledText;
+}
 
-	if (checkbox.checked === true)
-		text.innerText = browser.i18n.getMessage("popupEnabled");
-	else
-		text.innerText = browser.i18n.getMessage("popupDisabled");
+function nulUnd(object) {
+	return object === undefined || object === null;
 }

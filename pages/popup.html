@@ -6,58 +6,48 @@
 		<script src="../scripts/popup.js"></script>
 	</head>
 	<body>
-		<table>
-			<tbody>
-				<tr>
-					<td rowspan="2" class="title-image">
-						<img id="titleIcon" src="../images/youtube-shorts-filter.png">
-					</td>
-					<td rowspan="2" class="icon-spacer"></td>
-					<td class="title-text">
-						<span id="titleText1">{title text1}</span>
-					</td>
-				</tr>
-				<tr>
-					<td class="title-text">
-						<span id="titleText2">{title text2}</span>
-					</td>
-				</tr>
-				<tr>
-					<td colspan="3">
-						<hr class="separator" />
-					</td>
-				</tr>
-				<tr class="options-row">
-					<td>
-						<label for="enableAll" class="styled-input styled-checkbox">
-							<input id="enableAll" type="checkbox" class="hidden">
-							<span class="checkbox">
-								<span class="check"></span>
-							</span>
-						</label>
-					</td>
-					<td rowspan="2" class="icon-spacer"></td>
-					<td>
-						<label for="enableAll" class="styled-input">
-							<span id="enableAllText" class="input-label"></span>
-						</label>
-					</td>
-				</tr>
-				<tr class="options-row">
-					<td>
-						<label for="optionsButton" class="styled-input styled-button">
-							<input id="optionsButton" type="button" class="hidden">
-							<object type="image/svg+xml" data="../images/gear.svg" class="image"></object>
-							<div class="clickable"></div>
-						</label>
-					</td>
-					<td>
-						<label for="optionsButton" class="styled-input">
-							<span id="optionsButtonLabel" class="input-label">{options}</span>
-						</label>
-					</td>
-				</tr>
-			</tbody>
-		</table>
+		<div class="grid">
+			<div class="title-image left">
+				<img src="../images/youtube-shorts-filter.png">
+			</div>
+			<div id="extensionName1" class="title-text r1">
+				{extension name1}
+			</div>
+			<div id="extensionName2" class="title-text r2">
+				{extension name2}
+			</div>
+			<div class="separator">
+				<hr />
+			</div>
+			<div class="check-icon left">
+				<label for="enableAll" class="styled-input styled-checkbox">
+					<input id="enableAll" type="checkbox" class="hidden">
+					<span class="checkbox">
+						<span class="check"></span>
+					</span>
+				</label>
+			</div>
+			<div class="check-label">
+				<label for="enableAll" class="styled-input">
+					<span id="enableAllText" class="input-label">
+						{global enable text}
+					</span>
+				</label>
+			</div>
+			<div class="options-icon left">
+				<label for="options" class="styled-input styled-button">
+					<input id="options" type="button" class="hidden">
+					<object type="image/svg+xml" data="../images/gear.svg" class="image"></object>
+					<div class="clickable"></div>
+				</label>
+			</div>
+			<div class="options-label">
+				<label for="options" class="styled-input">
+					<span id="optionsText" class="input-label">
+						{options}
+					</span>
+				</label>
+			</div>
+		</div>
 	</body>
 </html>

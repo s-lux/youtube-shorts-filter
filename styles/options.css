@@ -1,120 +1,165 @@
 @import './variables.css';
+@import './common.css';
 
 body {
-	background-color: var(--background);
+	font-size: 16pt;
+	min-width: 15em;
+}
+
+a,
+a:visited {
 	color: var(--foreground);
-	font-family: sans-serif;
-	font-size: 12pt;
-	min-width: 20em;
+	text-decoration-line: underline;
+	text-decoration-style: solid;
+	text-decoration-color: var(--gray);
 }
 
-.header {
-	text-align: center;
+a:active,
+a:focus,
+a:hover {
+	color: var(--primary-base);
+	text-decoration-color: var(--primary-weak);
 }
 
-.header>.image {
-	height: auto;
-	max-width: 64px;
-	min-width: 32px;
-	width: 100%;
+.grid {
+	display: grid;
+	row-gap: .5em;
 }
 
-.header>#titleText {
-	font-size: 1.5em;
+.grid>.row {
+	align-items: center;
+	column-gap: .25em;
+	display: inline-flex;
+}
+
+.grid>.row.nogap {
+	column-gap: 0;
+}
+
+.grid>.title {
 	font-weight: bold;
-	margin: .25em 0 .5em;
+	font-size: 1.75em;
 }
 
-.group {
-	border: 1px solid var(--primary-base);
-	border-radius: .5em;
+.grid>.title>.image {
+	display: inherit;
+}
+
+.grid>.title>.image>img {
+	width: 36pt;
+}
+
+.grid>.separator>hr {
+	border-color: var(--primary-weak);
+	border-style: solid;
+	border-width: 1pt 0 0 0;
 	margin: 0;
-	padding: .25em .75em .5em;
 }
 
-.group>.title {
-	background-color: var(--primary-weakest);
-	border: 1px solid var(--primary-base);
-	border-radius: .5em;
-	font-weight: bold;
-	margin: 0 0 0 -.25em;
-	padding: 0 .25em;
+.grid>.add {
+	display: grid;
+	grid-template-columns: auto min-content;
 }
 
-.info {
-	font-size: .67em;
-	margin-top: .5em;
-	padding: 0 .1em;
+.grid>.add>.input {
+	display: grid;
 }
 
-.info>.version td {
-	width: 50%;
+.grid>.last {
+	display: grid;
+	grid-template-columns: auto auto;
+	font-size: .5em;
 }
 
-.info>.version td:last-child {
+.grid>.last>.developer {
 	text-align: right;
 }
 
-.table {
-	border-collapse: collapse;
-	width: 100%;
+.group {
+	margin: 1em 0 0 0;
 }
 
-.table td {
-	padding: .25em;
-	width: 100%;
+.group.text {
+	font-size: 1.25em;
+	font-weight: bolder;
 }
 
-.table td:first-child {
-	width: 100%;
+.button,
+.textbox {
+	font-size: 1em;
 }
 
-.table .button {
+.button {
 	background-color: var(--primary-weakest);
-	border: 1px solid var(--primary-base);
-	border-radius: .5em;
+	border: 1pt solid var(--primary-base);
+	border-radius: 1em;
 	color: var(--foreground);
 	cursor: pointer;
 	font-weight: bold;
-	margin-left: .5em;
-	padding: 2px 4px;
 }
 
-.table .button:hover,
-.table .button:focus {
+.button:hover,
+.button:focus {
 	background-color: var(--primary-weak);
 }
 
-.table .button:focus {
+.button:focus {
 	outline-style: none;
 }
 
-.table .textbox {
+.textbox {
 	background-color: var(--primary-weakest);
-	border: 1px solid var(--primary-base);
-	border-radius: .5em;
+	border: 1pt solid var(--primary-base);
+	border-radius: 1em;
 	color: var(--foreground);
 	outline: none;
-	width: 100%;
 }
 
-.table .textbox:hover,
-.table .textbox:focus {
+.textbox:hover,
+.textbox:focus {
 	background-color: var(--primary-weak);
 }
 
-.table .textbox:focus {
+.textbox:focus {
 	outline-style: none;
 }
 
-.table.list tr:nth-child(even) {
+.add .button,
+.remove .button {
+	border-radius: 0 1em 1em 0;
+}
+
+.add .button {
+	border-left-style: none;
+}
+
+.add .textbox {
+	border-radius: 1em 0 0 1em;
+}
+
+.add .button,
+.add .textbox,
+.remove .button {
+	padding: 0.15em 0.5em;
+}
+
+.grid>.list-main-row {
+	align-items: center;
+	display: grid;
+	grid-template-columns: min-content auto;
+	column-gap: .25em;
+}
+
+.grid>.list-main-row>.list-sub-row {
+	display: grid;
+	grid-template-columns: auto min-content;
+	column-gap: 0;
+}
+
+.channel-name {
 	background-color: var(--primary-weakest);
-}
-
-.table.list tr:hover {
-	background-color: var(--primary-weak);
-}
-
-.table.list tr:nth-child(even):hover {
-	background-color: var(--primary-weak);
+	padding: 0.15em 0.5em;
+	border-radius: 1em 0 0 1em;
+	display: flex;
+	align-items: center;
 }

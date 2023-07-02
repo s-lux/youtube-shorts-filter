@@ -1,38 +1,50 @@
 {
-	"extensionName": {
-		"message": "YouTube-Shorts Filter"
+	"blacklistTitle": {
+		"message": "Blacklisted channels"
+	},
+	"buttonOptions":{
+		"message": "Options"
+	},
+	"checkboxBlacklistMode":{
+		"message": "Blacklist"
+	},
+	"checkboxDisabled":{
+		"message": "Disabled"
+	},
+	"checkboxEnabled":{
+		"message": "Enabled"
+	},
+	"checkboxWhitelistMode":{
+		"message": "Whitelist"
+	},
+	"developer": {
+		"message": "Developed by"
 	},
 	"extensionDescription": {
 		"message": "Filters out YouTube-Shorts from the home page, subscriptions and search results."
 	},
-	"popupTitle1":{
+	"extensionName": {
+		"message": "YouTube-Shorts Filter"
+	},
+	"extensionNameLine1":{
 		"message": "YouTube-"
 	},
-	"popupTitle2":{
+	"extensionNameLine2":{
 		"message": "Shorts Filter"
 	},
-	"popupOptions":{
-		"message": "Options"
-	},
-	"popupEnabled":{
-		"message": "Enabled"
-	},
-	"popupDisabled":{
-		"message": "Disabled"
-	},
-	"groupLegendWhitelist": {
-		"message": "Whitelist channels"
-	},
-	"channelNameLabel": {
-		"message": "Enter a channel name"
-	},
-	"addButton": {
+	"listAddButton": {
 		"message": "Add"
 	},
-	"removeButton": {
+	"listAddText": {
+		"message": "Enter a channel title or id"
+	},
+	"listRemoveButton": {
 		"message": "Remove"
 	},
 	"version": {
 		"message": "Version"
+	},
+	"whitelistTitle": {
+		"message": "Whitelisted channels"
 	}
 }

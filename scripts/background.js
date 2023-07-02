@@ -1,6 +1,6 @@
 browser.runtime.onMessage.addListener(message => {
 	switch (message) {
-		case "openOptions":
+		case 'openOptions':
 			let optionsUrl = browser.runtime.getURL('../pages/options.html');
 
 			// Check if already open
